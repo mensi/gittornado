@@ -23,7 +23,7 @@ import ConfigParser
 
 import tornado.ioloop, tornado.httpserver
 from tornado.options import define, options, parse_command_line
-from gittornado import RPCHandler, InfoRefsHandler
+from gittornado import RPCHandler, InfoRefsHandler, FileHandler
 
 accessfile = ConfigParser.ConfigParser()
 
@@ -64,14 +64,12 @@ def auth_failed(request):
                     len(msg), options.realm.encode('utf-8'), msg))
 
 def main():
-    #define('loglevel', default=logging.ERROR, type=int, help="Loglevel (Debug=10, Error=40, Critical=50)")
     define('port', default=8080, type=int, help="Port to listen on")
     define('gitbase', default='.', type=str, help="Base directory where bare git directories are stored")
     define('accessfile', type=str, help="File with access permissions")
     define('realm', default='my git repos', type=str, help="Basic auth realm")
 
     parse_command_line()
-    #logging.basicConfig(level=options.loglevel)
 
     if options.accessfile:
         accessfile.read(options.accessfile)
@@ -84,6 +82,8 @@ def main():
     app = tornado.web.Application([
                            ('/.*/git-.*', RPCHandler, conf),
                            ('/.*/info/refs', InfoRefsHandler, conf),
+                           ('/.*/HEAD', FileHandler, conf),
+                           ('/.*/objects/.*', FileHandler, conf),
                            ])
 
     server = tornado.httpserver.HTTPServer(app)

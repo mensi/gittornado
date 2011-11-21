@@ -21,6 +21,8 @@ import datetime
 import calendar
 import email.utils
 
-def get_date_header():
-    t = calendar.timegm(datetime.datetime.now().utctimetuple())
+def get_date_header(dt=None):
+    if dt is None:
+        dt = datetime.datetime.now()
+    t = calendar.timegm(dt.utctimetuple())
     return email.utils.formatdate(t, localtime=False, usegmt=True)

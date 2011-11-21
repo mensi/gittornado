@@ -20,6 +20,7 @@
 import subprocess
 import zlib
 import os
+import os.path
 
 import tornado.ioloop
 
@@ -27,6 +28,38 @@ from gittornado.util import get_date_header
 
 import logging
 logger = logging.getLogger(__name__)
+
+class FileWrapper(object):
+    """Wraps a file and communicates with HTTP client"""
+
+    def __init__(self, request, filename, headers={}):
+        self.request = request
+        self.headers = headers.copy()
+
+        try:
+            self.file = open(filename, 'rb')
+            filesize = os.path.getsize(filename)
+        except:
+            raise tornado.web.HTTPError(500, 'Unable to open file')
+
+        self.headers.update({'Date': get_date_header(), 'Content-Length': str(filesize)})
+        self.request.write('HTTP/1.1 200 OK\r\n' + '\r\n'.join([ k + ': ' + v for k, v in self.headers.items()]) + '\r\n\r\n')
+
+        self.write_chunk()
+
+    def write_chunk(self):
+        data = self.file.read(8192)
+
+        if data == '':
+            # EOF
+            self.file.close()
+            self.request.finish()
+            return
+
+        # write data to client and continue when data has been written
+        self.request.write(data, self.write_chunk)
+
+
 
 class ProcessWrapper(object):
     """Wraps a subprocess and communicates with HTTP client
