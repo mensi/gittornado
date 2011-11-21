@@ -6,12 +6,12 @@ chunked transfer encoding. It is designed to use little resources and as such wi
 try its best to avoid reading whole files or git output into memory.
 
 How to Install
-==============
+--------------
 
 	$ python setup.py install
 	
 How to Use
-==========
+----------
 
 To best suit your needs, you should include the provided RequestHandlers into your 
 tornado application. An example of such an application is given in server.py. The 
@@ -23,7 +23,7 @@ and you will have the example server running on port 8080, serving the git repos
 in your working directory world-readable.
 
 Why not WSGI
-============
+------------
 
 The WSGI standard doesn't offer a consistent way of working with requests that do not
 offer a Content-Length header. mod_wsgi provides an option to read chunked requests into 
@@ -44,8 +44,23 @@ have a webinterface for your repository under the same URL, you can use tornado'
 	   ('/.*/.*/objects/.*', FileHandler, config_dict),
 	   ('.*', tornado.web.FallbackHandler, {'fallback': fallbackapp})
 	])
+	
+Apache
+------
+
+If you want to integrate GitTornado into an existing site, you can use mod_proxy together with 
+mod_proxy_http to configure a reverse proxy:
+
+	ProxyPass /git/ http://127.0.0.1:8080/
+	ProxyPassReverse /git/ http://127.0.0.1:8080/
+	
+Production
+----------
+
+For productional use, you might want to put GitTornado behind a reverse proxy / load balancer, for 
+example Apache or nginx and start one process for every CPU instruction queue on your machine.
 
 License
-=======
+-------
 
 GitTornado is licensed under GPLv3.
