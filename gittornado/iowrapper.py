@@ -358,13 +358,13 @@ class ProcessWrapper(object):
         if not self.process.stdin.closed:
             self.process.stdin.close()
 
-        logger.debug("Finishing up")
+        logger.debug("Finishing up. Process poll: %r", self.process.poll())
 
         if not self.headers_sent:
-            logger.error("Empty response")
+            logger.warning("Empty response")
             # we didn't write any data, so this is probably an error
             payload = "did not produce any data"
-            data = 'HTTP/1.1 500 Internal Server Error\r\nDate: %s\r\nContent-Length: %d\r\n\r\n' % (self._get_date(), len(payload))
+            data = 'HTTP/1.1 500 Internal Server Error\r\nDate: %s\r\nContent-Length: %d\r\n\r\n' % (get_date_header(), len(payload))
             self.headers_sent = True
             data += payload
             self.request.write(data)
