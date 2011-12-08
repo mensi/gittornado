@@ -305,7 +305,7 @@ class ProcessWrapper(object):
                     logger.error("This should not happen")
                     data = self.process.stdout.read()
 
-            if len(data) == 8192:
+            if len(data) == 8200:
                 self.number_of_8k_chunks_sent += 1
             else:
                 if self.number_of_8k_chunks_sent > 0:
@@ -368,7 +368,7 @@ class ProcessWrapper(object):
             self.process.stdin.close()
 
         if self.number_of_8k_chunks_sent > 0:
-            logger.debug('Sent %d * 8192 bytes', self.number_of_8k_chunks_sent)
+            logger.debug('Sent %d * 8k chunks', self.number_of_8k_chunks_sent)
 
         logger.debug("Finishing up. Process poll: %r", self.process.poll())
 
