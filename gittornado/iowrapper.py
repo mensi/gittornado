@@ -73,6 +73,8 @@ class ProcessWrapper(object):
     got_request = False
     sent_chunks = False
 
+    number_of_8k_chunks_sent = 0
+
     gzip_decompressor = None
     gzip_header_seen = False
 
@@ -303,7 +305,14 @@ class ProcessWrapper(object):
                     logger.error("This should not happen")
                     data = self.process.stdout.read()
 
-            logger.debug('Sending stdout to client %d bytes: %r', len(data), data[:20])
+            if len(data) == 8192:
+                self.number_of_8k_chunks_sent += 1
+            else:
+                if self.number_of_8k_chunks_sent > 0:
+                    logger.debug('Sent %d * 8192 bytes', self.number_of_8k_chunks_sent)
+                    self.number_of_8k_chunks_sent = 0
+
+                logger.debug('Sending stdout to client %d bytes: %r', len(data), data[:20])
             self.request.write(data)
 
         # now we can also have an error. This is because tornado maps HUP onto error
@@ -357,6 +366,9 @@ class ProcessWrapper(object):
 
         if not self.process.stdin.closed:
             self.process.stdin.close()
+
+        if self.number_of_8k_chunks_sent > 0:
+            logger.debug('Sent %d * 8192 bytes', self.number_of_8k_chunks_sent)
 
         logger.debug("Finishing up. Process poll: %r", self.process.poll())
 
