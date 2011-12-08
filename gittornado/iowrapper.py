@@ -361,13 +361,18 @@ class ProcessWrapper(object):
         logger.debug("Finishing up. Process poll: %r", self.process.poll())
 
         if not self.headers_sent:
-            logger.warning("Empty response")
-            # we didn't write any data, so this is probably an error
-            payload = "did not produce any data"
-            data = 'HTTP/1.1 500 Internal Server Error\r\nDate: %s\r\nContent-Length: %d\r\n\r\n' % (get_date_header(), len(payload))
-            self.headers_sent = True
-            data += payload
-            self.request.write(data)
+            retval = self.process.poll()
+            if retval != 0:
+                logger.warning("Empty response. Git return value: " + str(retval))
+                payload = "Did not produce any data. Errorcode: " + str(retval)
+                data = 'HTTP/1.1 500 Internal Server Error\r\nDate: %s\r\nContent-Length: %d\r\n\r\n' % (get_date_header(), len(payload))
+                self.headers_sent = True
+                data += payload
+                self.request.write(data)
+            else:
+                data = 'HTTP/1.1 200 Ok\r\nDate: %s\r\nContent-Length: 0\r\n\r\n' % get_date_header()
+                self.headers_sent = True
+                self.request.write(data)
 
         # if we are in chunked mode, send end chunk with length 0
         elif self.sent_chunks:
