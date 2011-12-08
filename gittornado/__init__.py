@@ -129,13 +129,19 @@ class InfoRefsHandler(BaseHandler):
         logger.debug("Query string: %r", self.request.query)
         rpc = urlparse.parse_qs(self.request.query).get('service', [''])[0]
 
+        read, write = self.check_auth()
+        if not read:
+            if self.auth_failed:
+                self.auth_failed(self.request)
+                self.request.finish()
+                return
+            else:
+                raise tornado.web.HTTPError(403, 'You are not allowed to perform this action')
+
         if not rpc:
             # this appears to be a dumb client. send the file
             logger.debug("Dumb client detected")
-            FileWrapper(self.request, os.path.join(gitdir, 'info/refs'), dict(dont_cache() + [('Content-Type', 'text/plain; charset=utf-8')]))
-            return
-
-        if not self.enforce_perms(rpc):
+            FileWrapper(self.request, os.path.join(gitdir, 'info', 'refs'), dict(dont_cache() + [('Content-Type', 'text/plain; charset=utf-8')]))
             return
 
         rpc = rpc[4:]
