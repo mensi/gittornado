@@ -8,7 +8,7 @@ try its best to avoid reading whole files or git output into memory.
 How to Install
 --------------
 
-	$ python setup.py install
+	$ pip install gittornado
 	
 How to Use
 ----------
