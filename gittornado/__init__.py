@@ -20,10 +20,12 @@
 import urlparse
 import re
 import os.path
+import datetime
 
 import tornado.web
 
 from gittornado.iowrapper import ProcessWrapper, FileWrapper
+from gittornado.util import get_date_header
 
 import logging
 logger = logging.getLogger(__name__)
